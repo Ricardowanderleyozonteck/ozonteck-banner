@@ -2,7 +2,7 @@ import io
 import os
 import urllib.parse
 import streamlit as st
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 # Configurações do App
 st.set_page_config(
@@ -119,7 +119,14 @@ def encontrar_arquivo_imagem(nome_arquivo):
 
 def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
   base = Image.open(base_img_path).convert("RGBA")
-  user = Image.open(user_img).convert("RGBA")
+
+  # Carrega a imagem do usuário
+  user_raw = Image.open(user_img)
+
+  # CORREÇÃO DA ORIENTAÇÃO EXIF (Celulares/iPhones)
+  # Transpõe os pixels para a orientação correta baseada no giroscópio do celular
+  user_corrected = ImageOps.exif_transpose(user_raw)
+  user = user_corrected.convert("RGBA")
 
   mask_center_x = 525
   mask_center_y = 643
