@@ -1,6 +1,5 @@
 import io
 import os
-import urllib.parse
 import streamlit as st
 from PIL import Image, ImageDraw, ImageOps
 
@@ -73,28 +72,6 @@ st.markdown(
     div[data-testid="stFileUploader"] svg {
         fill: #000000 !important;
     }
-    .whatsapp-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(90deg, #25D366 0%, #1BD741 100%) !important;
-        color: #ffffff !important;
-        font-weight: bold !important;
-        font-size: 1.1rem !important;
-        text-decoration: none !important;
-        padding: 12px;
-        border-radius: 8px !important;
-        text-align: center;
-        box-shadow: 0px 4px 15px rgba(37, 211, 102, 0.3) !important;
-        transition: all 0.3s ease !important;
-        margin-top: 10px;
-        width: 100%;
-    }
-    .whatsapp-btn:hover {
-        transform: scale(1.02) !important;
-        box-shadow: 0px 6px 20px rgba(37, 211, 102, 0.5) !important;
-        color: #ffffff !important;
-    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -124,7 +101,6 @@ def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
   user_raw = Image.open(user_img)
 
   # CORREÇÃO DA ORIENTAÇÃO EXIF (Celulares/iPhones)
-  # Transpõe os pixels para a orientação correta baseada no giroscópio do celular
   user_corrected = ImageOps.exif_transpose(user_raw)
   user = user_corrected.convert("RGBA")
 
@@ -187,7 +163,7 @@ def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
   return base
 
 
-# APENAS AS DUAS OPÇÕES REQUISITADAS
+# MODELOS DISPONÍVEIS
 MODELOS_DISPONIVEIS = {
     "💎 OZON 1.000": "ozon_1.000.png",
     "🍽️ JANTAR 1.000": "jantar_1.000.png",
@@ -283,27 +259,6 @@ if uploaded_file is not None:
           file_name="banner_personalizado_ozonteck.jpg",
           mime="image/jpeg",
           use_container_width=True,
-      )
-
-      url_do_app = "https://share.streamlit.io"
-      mensagem_whatsapp = (
-          "Olá! Acabei de criar o meu banner oficial da Ozonteck! Ficou"
-          " incrível. Crie o seu também agora mesmo pelo celular neste link:"
-          f" {url_do_app}"
-      )
-
-      texto_codificado = urllib.parse.quote(mensagem_whatsapp)
-      link_share_whatsapp = (
-          f"https://api.whatsapp.com/send?text={texto_codificado}"
-      )
-
-      st.markdown(
-          f"""
-              <a href="{link_share_whatsapp}" target="_blank" class="whatsapp-btn">
-                  📢 CONVIDAR MINHA EQUIPE VIA WHATSAPP
-              </a>
-          """,
-          unsafe_allow_html=True,
       )
 
     except Exception as e:
