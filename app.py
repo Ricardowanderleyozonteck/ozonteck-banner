@@ -100,14 +100,21 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# LOCALIZAÇÃO GARANTIDA DA PASTA BANNERS
+# DIRETÓRIO BASE
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 PASTA_BANNERS = os.path.join(BASE_DIR, "banners")
 
-if not os.path.exists(PASTA_BANNERS):
-  PASTA_BANNERS_ALT = os.path.join(BASE_DIR, "Banners")
-  if os.path.exists(PASTA_BANNERS_ALT):
-    PASTA_BANNERS = PASTA_BANNERS_ALT
+
+def encontrar_arquivo_imagem(nome_arquivo):
+  """Busca a imagem na pasta 'banners' ou diretamente no diretório raiz."""
+  caminho_banners = os.path.join(PASTA_BANNERS, nome_arquivo)
+  caminho_raiz = os.path.join(BASE_DIR, nome_arquivo)
+
+  if os.path.exists(caminho_banners):
+    return caminho_banners
+  elif os.path.exists(caminho_raiz):
+    return caminho_raiz
+  return None
 
 
 def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
@@ -199,7 +206,7 @@ opcao_selecionada = st.selectbox(
 )
 
 nome_arquivo_banner = MODELOS_DISPONIVEIS[opcao_selecionada]
-caminho_completo_banner = os.path.join(PASTA_BANNERS, nome_arquivo_banner)
+caminho_completo_banner = encontrar_arquivo_imagem(nome_arquivo_banner)
 
 st.markdown(
     f"""
@@ -241,59 +248,63 @@ if uploaded_file is not None:
       step=2,
   )
 
-  try:
-    with st.spinner("✨ Ajustando sua foto ao modelo..."):
-      result_img = process_image(
-          uploaded_file,
-          caminho_completo_banner,
-          shift_x,
-          shift_y,
-          zoom_percent,
+  if caminho_completo_banner is None:
+    st.error(
+        f"❌ O arquivo '{nome_arquivo_banner}' não foi localizado na pasta"
+        " 'banners' nem no diretório raiz."
+    )
+  else:
+    try:
+      with st.spinner("✨ Ajustando sua foto ao modelo..."):
+        result_img = process_image(
+            uploaded_file,
+            caminho_completo_banner,
+            shift_x,
+            shift_y,
+            zoom_percent,
+        )
+
+      st.success(f"🎉 Seu banner do '{opcao_selecionada}' foi gerado!")
+      st.image(result_img, use_container_width=True)
+
+      buf = io.BytesIO()
+      result_img.convert("RGB").save(buf, format="JPEG", quality=95)
+      byte_im = buf.getvalue()
+
+      st.write("")
+      st.download_button(
+          label="🔥 BAIXAR MEU BANNER OFICIAL",
+          data=byte_im,
+          file_name="banner_personalizado_ozonteck.jpg",
+          mime="image/jpeg",
+          use_container_width=True,
       )
 
-    st.success(f"🎉 Seu banner do '{opcao_selecionada}' foi gerado!")
-    st.image(result_img, use_container_width=True)
+      url_do_app = "https://share.streamlit.io"
+      mensagem_whatsapp = (
+          "Olá! Acabei de criar o meu banner oficial da Ozonteck! Ficou"
+          " incrível. Crie o seu também agora mesmo pelo celular neste link:"
+          f" {url_do_app}"
+      )
 
-    buf = io.BytesIO()
-    result_img.convert("RGB").save(buf, format="JPEG", quality=95)
-    byte_im = buf.getvalue()
+      texto_codificado = urllib.parse.quote(mensagem_whatsapp)
+      link_share_whatsapp = (
+          f"https://api.whatsapp.com/send?text={texto_codificado}"
+      )
 
-    st.write("")
-    st.download_button(
-        label="🔥 BAIXAR MEU BANNER OFICIAL",
-        data=byte_im,
-        file_name="banner_personalizado_ozonteck.jpg",
-        mime="image/jpeg",
-        use_container_width=True,
-    )
+      st.markdown(
+          f"""
+              <a href="{link_share_whatsapp}" target="_blank" class="whatsapp-btn">
+                  📢 CONVIDAR MINHA EQUIPE VIA WHATSAPP
+              </a>
+          """,
+          unsafe_allow_html=True,
+      )
 
-    url_do_app = "https://share.streamlit.io"
-    mensagem_whatsapp = (
-        "Olá! Acabei de criar o meu banner oficial da Ozonteck! Ficou incrível."
-        f" Crie o seu também agora mesmo pelo celular neste link: {url_do_app}"
-    )
-
-    texto_codificado = urllib.parse.quote(mensagem_whatsapp)
-    link_share_whatsapp = f"https://api.whatsapp.com/send?text={texto_codificado}"
-
-    st.markdown(
-        f"""
-            <a href="{link_share_whatsapp}" target="_blank" class="whatsapp-btn">
-                📢 CONVIDAR MINHA EQUIPE VIA WHATSAPP
-            </a>
-        """,
-        unsafe_allow_html=True,
-    )
-
-  except FileNotFoundError:
-    st.error(
-        f"❌ O arquivo '{nome_arquivo_banner}' não foi localizado no caminho:"
-        f" {caminho_completo_banner}"
-    )
-  except Exception as e:
-    st.error(f"💥 Erro ao processar: {e}")
+    except Exception as e:
+      st.error(f"💥 Erro ao processar: {e}")
 else:
-  if os.path.exists(caminho_completo_banner):
+  if caminho_completo_banner and os.path.exists(caminho_completo_banner):
     try:
       img_previa = Image.open(caminho_completo_banner).convert("RGB")
       st.image(
@@ -305,21 +316,6 @@ else:
       st.error(f"Erro ao abrir a prévia: {e}")
   else:
     st.warning(
-        f"⚠️ Não foi possível encontrar o arquivo '{nome_arquivo_banner}' na"
-        f" pasta '{PASTA_BANNERS}'."
+        f"⚠️ Não foi possível encontrar o arquivo '{nome_arquivo_banner}' no"
+        " repositório."
     )
-
-    # Painel de diagnóstico direto na tela do app
-    with st.expander("🔍 Clique aqui para ver o Diagnóstico de Arquivos"):
-      st.write(f"**Diretório Base:** `{BASE_DIR}`")
-      st.write(f"**Pasta Banners Procurada:** `{PASTA_BANNERS}`")
-      st.write(f"**Pasta Banners Existe?** {os.path.exists(PASTA_BANNERS)}")
-      if os.path.exists(BASE_DIR):
-        st.write(
-            f"**Arquivos no Diretório Raiz:** {os.listdir(BASE_DIR)}"
-        )
-      if os.path.exists(PASTA_BANNERS):
-        st.write(
-            f"**Arquivos dentro da pasta 'banners':**"
-            f" {os.listdir(PASTA_BANNERS)}"
-        )
