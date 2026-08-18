@@ -180,12 +180,10 @@ def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
   return base
 
 
-# DICIONÁRIO DE MODELOS
+# APENAS AS DUAS OPÇÕES REQUISITADAS
 MODELOS_DISPONIVEIS = {
-    "🏆 OZON HAIR SCIENCE": "banner_base.png",
     "💎 OZON 1.000": "ozon_1.000.png",
-    "✨ Modelo Reconhecimento Diamante": "banner_modelo2.png",
-    "🔥 Modelo Convite Especial": "banner_modelo3.png",
+    "🍽️ JANTAR 1.000": "jantar_1.000.png",
 }
 
 # INTERFACE VISUAL
@@ -250,8 +248,8 @@ if uploaded_file is not None:
 
   if caminho_completo_banner is None:
     st.error(
-        f"❌ O arquivo '{nome_arquivo_banner}' não foi localizado na pasta"
-        " 'banners' nem no diretório raiz."
+        f"❌ O arquivo '{nome_arquivo_banner}' não foi localizado no"
+        " repositório. Lembre-se de enviar a imagem para o GitHub!"
     )
   else:
     try:
@@ -316,6 +314,6 @@ else:
       st.error(f"Erro ao abrir a prévia: {e}")
   else:
     st.warning(
-        f"⚠️ Não foi possível encontrar o arquivo '{nome_arquivo_banner}' no"
-        " repositório."
+        f"⚠️ Envie o arquivo da imagem '{nome_arquivo_banner}' para o GitHub"
+        " para visualizar esta opção."
     )
