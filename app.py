@@ -2,26 +2,23 @@ import io
 import os
 import urllib.parse
 import streamlit as st
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw
 
-# Configurações de layout e identidade visual do App
+# Configurações do App
 st.set_page_config(
     page_title="Gerador de Banner Oficial Ozonteck",
     page_icon="🚀",
     layout="centered",
 )
 
-# Estilização CSS Customizada - Inclusão do Botão do WhatsApp
+# Estilização CSS Customizada
 st.markdown(
     """
     <style>
-    /* Alterar cor de fundo geral e fontes */
     .stApp {
         background: linear-gradient(135deg, #0f0c20 0%, #15102a 50%, #060409 100%);
         color: #ffffff;
     }
-    
-    /* Título Principal */
     .main-title {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-weight: 800;
@@ -32,16 +29,12 @@ st.markdown(
         text-align: center;
         margin-bottom: 5px;
     }
-    
-    /* Subtítulo */
     .subtitle {
         text-align: center;
         font-size: 1.1rem;
         color: #a29bfe;
         margin-bottom: 30px;
     }
-    
-    /* Card de Instruções */
     .step-card {
         background: rgba(255, 255, 255, 0.05);
         border-left: 4px solid #00f2fe;
@@ -49,8 +42,6 @@ st.markdown(
         border-radius: 8px;
         margin-bottom: 20px;
     }
-    
-    /* FORÇAR COR DO TEXTO DENTRO DOS BOTÕES DO STREAMLIT */
     div.stButton > button, div.stDownloadButton > button {
         background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%) !important;
         color: #060409 !important;
@@ -61,14 +52,11 @@ st.markdown(
         transition: all 0.3s ease !important;
         box-shadow: 0px 4px 15px rgba(0, 242, 254, 0.3) !important;
     }
-    
     div.stButton > button:hover, div.stDownloadButton > button:hover {
         transform: scale(1.02) !important;
         box-shadow: 0px 6px 20px rgba(0, 242, 254, 0.5) !important;
         color: #000000 !important;
     }
-
-    /* FORÇAR TEXTO DO MODELO SELECIONADO NA TARJA PARA PRETO */
     div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
         color: #000000 !important;
         font-weight: 500 !important;
@@ -76,20 +64,15 @@ st.markdown(
     div[data-testid="stSelectbox"] div[data-baseweb="select"] div {
         color: #000000 !important;
     }
-    
     div[role="listbox"] * {
         color: #000000 !important; 
     }
-
-    /* FORÇAR O TEXTO DA ÁREA DE UPLOAD PARA PRETO */
     div[data-testid="stFileUploader"] * {
         color: #000000 !important;
     }
     div[data-testid="stFileUploader"] svg {
         fill: #000000 !important;
     }
-
-    /* ESTILIZAÇÃO DO BOTÃO DO WHATSAPP (VERDE) */
     .whatsapp-btn {
         display: flex;
         align-items: center;
@@ -116,6 +99,15 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
+# LOCALIZAÇÃO GARANTIDA DA PASTA BANNERS
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+PASTA_BANNERS = os.path.join(BASE_DIR, "banners")
+
+if not os.path.exists(PASTA_BANNERS):
+  PASTA_BANNERS_ALT = os.path.join(BASE_DIR, "Banners")
+  if os.path.exists(PASTA_BANNERS_ALT):
+    PASTA_BANNERS = PASTA_BANNERS_ALT
 
 
 def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
@@ -181,11 +173,7 @@ def process_image(user_img, base_img_path, shift_x, shift_y, zoom_percent):
   return base
 
 
-# Mapeamento da pasta
-PASTA_BANNERS = os.path.join(os.path.dirname(__file__), "banners")
-if not os.path.exists(PASTA_BANNERS):
-  os.makedirs(PASTA_BANNERS)
-
+# DICIONÁRIO DE MODELOS
 MODELOS_DISPONIVEIS = {
     "🏆 OZON HAIR SCIENCE": "banner_base.png",
     "💎 OZON 1.000": "ozon_1.000.png",
@@ -193,7 +181,7 @@ MODELOS_DISPONIVEIS = {
     "🔥 Modelo Convite Especial": "banner_modelo3.png",
 }
 
-# --- INTERFACE VISUAL ---
+# INTERFACE VISUAL
 st.markdown(
     '<p class="main-title">✨ Banner Inteligente Ozonteck</p>',
     unsafe_allow_html=True,
@@ -279,8 +267,7 @@ if uploaded_file is not None:
         use_container_width=True,
     )
 
-    # --- CONFIGURAÇÃO DO COMPARTILHAMENTO VIA WHATSAPP (CORRIGIDO) ---
-    url_do_app = "https://seu-app.streamlit.app"  # Substitua pela sua URL final publicada
+    url_do_app = "https://share.streamlit.io"
     mensagem_whatsapp = (
         "Olá! Acabei de criar o meu banner oficial da Ozonteck! Ficou incrível."
         f" Crie o seu também agora mesmo pelo celular neste link: {url_do_app}"
@@ -299,22 +286,40 @@ if uploaded_file is not None:
     )
 
   except FileNotFoundError:
-    st.error(f"❌ Arquivo '{nome_arquivo_banner}' ausente na pasta 'banners'.")
+    st.error(
+        f"❌ O arquivo '{nome_arquivo_banner}' não foi localizado no caminho:"
+        f" {caminho_completo_banner}"
+    )
   except Exception as e:
     st.error(f"💥 Erro ao processar: {e}")
 else:
-  try:
-    if os.path.exists(caminho_completo_banner):
-      img_previa = Image.open(caminho_completo_banner)
+  if os.path.exists(caminho_completo_banner):
+    try:
+      img_previa = Image.open(caminho_completo_banner).convert("RGB")
       st.image(
           img_previa,
           caption=f"Prévia Visual: {opcao_selecionada}",
           use_container_width=True,
       )
-    else:
-      st.warning(
-          "⚠️ Crie a pasta 'banners' e salve nela o arquivo"
-          f" '{nome_arquivo_banner}' para ver a prévia."
-      )
-  except Exception:
-    pass
+    except Exception as e:
+      st.error(f"Erro ao abrir a prévia: {e}")
+  else:
+    st.warning(
+        f"⚠️ Não foi possível encontrar o arquivo '{nome_arquivo_banner}' na"
+        f" pasta '{PASTA_BANNERS}'."
+    )
+
+    # Painel de diagnóstico direto na tela do app
+    with st.expander("🔍 Clique aqui para ver o Diagnóstico de Arquivos"):
+      st.write(f"**Diretório Base:** `{BASE_DIR}`")
+      st.write(f"**Pasta Banners Procurada:** `{PASTA_BANNERS}`")
+      st.write(f"**Pasta Banners Existe?** {os.path.exists(PASTA_BANNERS)}")
+      if os.path.exists(BASE_DIR):
+        st.write(
+            f"**Arquivos no Diretório Raiz:** {os.listdir(BASE_DIR)}"
+        )
+      if os.path.exists(PASTA_BANNERS):
+        st.write(
+            f"**Arquivos dentro da pasta 'banners':**"
+            f" {os.listdir(PASTA_BANNERS)}"
+        )
