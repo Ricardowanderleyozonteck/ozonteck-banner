@@ -248,17 +248,28 @@ if uploaded_file is not None:
       st.success(f"🎉 Seu banner do '{opcao_selecionada}' foi gerado!")
       st.image(result_img, use_container_width=True)
 
+      # Converte a imagem processada para Bytes com o formato JPEG explícito
       buf = io.BytesIO()
       result_img.convert("RGB").save(buf, format="JPEG", quality=95)
       byte_im = buf.getvalue()
 
       st.write("")
+
+      # Botão configurado com MIME type 'image/jpeg' e arquivo com extensão .jpg para salvar direto na galeria
       st.download_button(
           label="🔥 BAIXAR MEU BANNER OFICIAL",
           data=byte_im,
-          file_name="banner_personalizado_ozonteck.jpg",
+          file_name="banner_ozonteck.jpg",
           mime="image/jpeg",
+          type="primary",
           use_container_width=True,
+      )
+
+      st.info(
+          "💡 **Dica para celulares:** Caso a foto abra na tela ao invés de"
+          " baixar automaticamente, pressione e segure o dedo sobre a imagem"
+          " e selecione **'Salvar Imagem'** ou **'Fazer download da"
+          " imagem'**."
       )
 
     except Exception as e:
